@@ -15,16 +15,16 @@ Four data examples in the *Geometry3K* dataset are shown below:
 Download the geometry problem data:
 
 - [Training data](https://lupantech.github.io/inter-gps/geometry3k/train.zip)
-  2,401 QA pairs
+  - 2,401 QA pairs
 - [Validation data](https://lupantech.github.io/inter-gps/geometry3k/val.zip)
-  300 QA pairs
+  - 300 QA pairs
 - [Testing data](https://lupantech.github.io/inter-gps/geometry3k/test.zip)
-  601 QA pairs
+  - 601 QA pairs
 
 Download the geometry literal (logic form) data:
 
 - [Literal (logic form) data](https://lupantech.github.io/inter-gps/geometry3k/logic_forms.zip)
-  6,293 annotated text literals, 27,213 annotated diagram literals
+  - 6,293 annotated text literals, 27,213 annotated diagram literals
 
 If you have trouble downloading data from the above links, you can alternatively visit the following Google Drive link: [Geometry3K Dataset](https://drive.google.com/drive/folders/1d05WYXtlgKIoaPpK1v94LYph_heiXM7Z?usp=sharing).
 

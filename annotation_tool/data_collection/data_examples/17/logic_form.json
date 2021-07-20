@@ -1,0 +1,45 @@
+{
+  "text_logic_form": [
+    "Parallelogram(M,N,P,Q)",
+    "Equals(MeasureOf(Angle(M)),10x)",
+    "Equals(MeasureOf(Angle(N)),20x)",
+    "Find(MeasureOf(Angle(Q)))"
+  ],
+  "dissolved_text_logic_form": [
+    "Parallelogram(M,N,P,Q)",
+    "Equals(MeasureOf(Angle(M)),10x)",
+    "Equals(MeasureOf(Angle(N)),20x)",
+    "Find(MeasureOf(Angle(Q)))"
+  ],
+  "diagram_logic_form": [
+    "Equals(MeasureOf(Angle(P, N, M)), MeasureOf(Angle(P, Q, M)))",
+    "Equals(MeasureOf(Angle(Q, P, N)), MeasureOf(Angle(Q, M, N)))"
+  ],
+  "line_instances": [
+    "NM",
+    "PN",
+    "PQ",
+    "QM"
+  ],
+  "point_positions": {
+    "M": [
+      1.0,
+      0.0
+    ],
+    "N": [
+      197.0,
+      2.0
+    ],
+    "P": [
+      255.0,
+      104.0
+    ],
+    "Q": [
+      59.0,
+      104.0
+    ]
+  },
+  "circle_instances": [
+    ""
+  ]
+}

@@ -1,0 +1,46 @@
+{% extends "form.html" %}
+
+{% block title %}Edit Annotation{% endblock %}
+
+
+{# Submission #}
+{% block SubmitAction %}
+    "/edit/{{ name }}"
+{% endblock %}
+
+
+{# Main Block Script #}
+{% block scripts %}
+    <script>
+        data = {{ data | tojson }};
+        logic_forms = {{ logic_forms | tojson }};
+        previous_logic_forms = {{ previous_logic_forms | tojson }};
+        annot_num = {{ annot_num }};
+        problem_id = "{{ name }}";
+        names = {{ names | tojson }};
+    </script>
+    <script src="/static/scripts/edit.js"></script>
+{% endblock %}
+
+
+{# Button Definitions #}
+{% block Previous %}
+    <button type="button" id="previous" class="btn btn-secondary"> Previous </button>
+{% endblock %}
+
+{% block Next %}
+    <button type="button" id="next" class="btn btn-secondary"> Next </button>
+{% endblock %}
+
+{% block Save %}
+    <button type="submit" id="submit" class="btn btn-primary btn-lg btn-blocky"> Save </button>
+{% endblock %}
+
+{% block SandN %}
+    <button type="submit" id="submit_and_next" class="btn btn-primary"> Save and Next </button>
+{% endblock %}
+
+{% block LoadPrevious %}
+    <button type="button" id="load_previous" class="btn btn-success">Load Previous</button>
+{% endblock %}
+

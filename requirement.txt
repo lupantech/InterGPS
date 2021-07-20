@@ -1,0 +1,17 @@
+# the diagram parser
+pandas
+imagehash
+pycocotools
+scikit-image
+opencv-python
+sklearn
+antlr4-python3-runtime
+
+# the symbolic solver
+kanren
+sympy
+func_timeout
+multiprocess
+
+# data collection tool
+flask

@@ -1,0 +1,84 @@
+{
+  "text_logic_form": [
+    "Circle(X)",
+    "Equals(LengthOf(Line(A,B)),30)",
+    "Equals(LengthOf(Line(C,D)),30)",
+    "Equals(MeasureOf(Arc(C,Z)),40)",
+    "Find(MeasureOf(Arc(A,B)))"
+  ],
+  "dissolved_text_logic_form": [
+    "Circle(X)",
+    "Equals(LengthOf(Line(A,B)),30)",
+    "Equals(LengthOf(Line(C,D)),30)",
+    "Equals(MeasureOf(Arc(C,Z)),40)",
+    "Find(MeasureOf(Arc(A,B)))"
+  ],
+  "diagram_logic_form": [
+    "PointLiesOnLine(N, Line(X, Z))",
+    "PointLiesOnLine(M, Line(X, Y))",
+    "PointLiesOnLine(N, Line(C, D))",
+    "PointLiesOnLine(M, Line(A, B))",
+    "PointLiesOnCircle(Z, Circle(X, radius_0_0))",
+    "PointLiesOnCircle(A, Circle(X, radius_0_0))",
+    "PointLiesOnCircle(C, Circle(X, radius_0_0))",
+    "PointLiesOnCircle(D, Circle(X, radius_0_0))",
+    "PointLiesOnCircle(Y, Circle(X, radius_0_0))",
+    "Perpendicular(Line(Y, M), Line(M, A))",
+    "Perpendicular(Line(N, D), Line(Z, N))"
+  ],
+  "line_instances": [
+    "AB",
+    "CD",
+    "MA",
+    "MB",
+    "NC",
+    "ND",
+    "XM",
+    "XN",
+    "XY",
+    "XZ",
+    "YM",
+    "ZN"
+  ],
+  "point_positions": {
+    "A": [
+      35.0,
+      18.0
+    ],
+    "B": [
+      144.0,
+      32.0
+    ],
+    "C": [
+      78.0,
+      175.0
+    ],
+    "D": [
+      176.0,
+      100.0
+    ],
+    "M": [
+      96.0,
+      26.0
+    ],
+    "N": [
+      128.0,
+      137.0
+    ],
+    "X": [
+      90.0,
+      91.0
+    ],
+    "Y": [
+      98.0,
+      0.0
+    ],
+    "Z": [
+      143.0,
+      156.0
+    ]
+  },
+  "circle_instances": [
+    "X"
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "text_logic_form": [
+    "Find(SinOf(x))"
+  ],
+  "dissolved_text_logic_form": [
+    "Find(SinOf(x))"
+  ],
+  "diagram_logic_form": [
+    "Equals(LengthOf(Line(D, A)), 10)",
+    "Equals(LengthOf(Line(B, A)), 8)",
+    "Equals(MeasureOf(Angle(A, D, E)), x)",
+    "Equals(LengthOf(Line(B, C)), 8)",
+    "Equals(LengthOf(Line(D, C)), 10)",
+    "PointLiesOnLine(E, Line(B, D))",
+    "PointLiesOnLine(E, Line(C, A))",
+    "Perpendicular(Line(A, E), Line(D, E))",
+    "Equals(Line(A, E), Line(B, E))",
+    "Equals(Line(B, E), Line(C, E))"
+  ],
+  "line_instances": [
+    "AE",
+    "BA",
+    "BC",
+    "BD",
+    "BE",
+    "CA",
+    "CE",
+    "DA",
+    "DC",
+    "DE"
+  ],
+  "point_positions": {
+    "A": [
+      223.0,
+      0.0
+    ],
+    "B": [
+      377.0,
+      155.0
+    ],
+    "C": [
+      224.0,
+      309.0
+    ],
+    "D": [
+      0.0,
+      155.0
+    ],
+    "E": [
+      223.0,
+      155.0
+    ]
+  },
+  "circle_instances": [
+    ""
+  ]
+}

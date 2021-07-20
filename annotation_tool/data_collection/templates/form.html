@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  {% block head %}
+  <title>{% block title %}{% endblock %}</title>
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/style.css') }}">
+  <link href="https://fonts.googleapis.com/css?family=Baloo+2&display=swap" rel="stylesheet">
+
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  {% endblock %}
+</head>
+
+
+<body>
+  <!--- Viewer Expander  -->
+  <div class="viewer">
+    <div class="expand-container">
+      <i class="fas fa-caret-right fa-2x" id="expand-control"></i>
+    </div>
+    <h1>Archive</h1> <i class="fas fa-sync-alt" id="reload"></i>
+    <div id="archive-content">
+    </div>
+  </div>
+
+  {% block LoadPrevious %}{% endblock %}
+
+  <form action={% block SubmitAction %} {% endblock %} method="post" enctype="multipart/form-data" id="dataContainer">
+    <input type="hidden" name="next_name" id="next_name"> {# ! #}
+    <div class="title">
+      {% block Previous %}{% endblock %}
+      <p>
+        Welcome!
+        You are editing
+        <font color="#0000ff">#{{ annot_num }}</font> data
+        (problem id: <font style="color: #FF0000"><b>{{ name }}</b></font>)
+      </p>
+      {% block Next %}{% endblock %}
+      {% block SandN %}{% endblock %}
+    </div>
+
+    <div onload="init_drawing()" class="annotation-content">
+      <!--- IMAGE PART  -->
+      <div class="left">
+        <div class="card" style="width:100%; padding:10px">
+          <label><b>Problem Diagram</b></label>
+          <canvas
+                  id="problemCanvas" width="350px" height="250px" class="drawingDisplay" style="border:1px solid #000000;">
+          </canvas>
+          <div class="display" id="img_diagram" style="display: none;">
+            <img src="{{ data.img2 }}" />
+          </div>
+          <label><br><br><b>Problem Screenshot</b></label>
+          <div class="display" id="img_problem">
+            <img src="{{ data.img1 }}" />
+          </div>
+        </div>
+      </div>
+
+      <!--- TEXT PART  -->
+      <div class="right">
+        <!--- Question Part  --> 
+        <div class="card" style="padding:10px; background-color:#f2f2f2">
+          <div class="math-render">
+            <label><b>Problem Text</b></label><br>
+            <textarea type="text" name="problem_text" id="id_problem_text" class="math-input"
+              style="width:100%; height:80px;"></textarea>
+            <br>
+            <p class="math-description"> </p>
+          </div>
+        </div>
+
+        <!--- Logic Form Part  -->
+        <div class="card" style="padding:10px; background-color:#e5f2ff">
+          <div class="row no-gutters">
+            <div class="col-md-6" style="padding:0px">
+              <label><b>Text Logic Forms</b></label><br>
+              <textarea type="text" name="text_logic_form" id="text" style="width:100%; height:200px;"> </textarea>
+            </div>
+
+            <div class="col-md-6" style="padding-left:10px">
+              <label><b>Dissolved Text Logic Forms</b></label><br>
+              <textarea type="text" name="dissolved_text_logic_form" id="dissolved" style="width:100%; height:200px;"> </textarea>
+            </div>
+          </div>
+          <div class="row no-gutters">
+            <div class="col-md-6" style="padding:0px">
+              <label><b>Diagram Logic Forms</b></label><br>
+              <textarea type="text" name="diagram_logic_form" id="diagram" style="width:100%; height:400px;"> </textarea>
+            </div>
+            <div class="col-md-2" style="padding-left:30px">
+              <label><b>Line Instances</b></label><br>
+              <textarea type="text" name="line_instances" id="linein" style="width:100%; height:400px;"> </textarea>
+            </div>
+            <div class="col-md-3" style="padding-left:30px">
+              <div>
+                <label><b>Circle Instances</b></label><br>
+                <textarea type="text" name="circle_instances" id="circle" style="width:100%; height:50px;"> </textarea>
+              </div>
+              <div>
+                <label><b>Point Positions</b></label><br>
+                <textarea type="text" name="point_positions" id="position" style="width:100%; height:310px;"> </textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!--- Answer Part  -->
+        <div class="card" style="padding:10px; background-color:#f2f2f2">
+          <!--- Choices  -->
+          <div class="">
+            <label><b>Choices</b></label> <br>
+            <div class="math-render">
+              <b>A. </b>
+              <input type="text" name="choices1" id="choice1" class="math-input">
+              <p class="math-description" style="display:inline; padding:10px;"> </p>
+            </div>
+            <div class="math-render">
+              <b>B. </b>
+              <input type="text" name="choices2" id="choice2" class="math-input">
+              <p class="math-description" style="display:inline; padding:10px;"> </p>
+            </div>
+            <div class="math-render">
+              <b>C. </b>
+              <input type="text" name="choices3" id="choice3" class="math-input">
+              <p class="math-description" style="display:inline; padding:10px;"> </p>
+            </div>
+            <div class="math-render">
+              <b>D. </b>
+              <input type="text" name="choices4" id="choice4" class="math-input">
+              <p class="math-description" style="display:inline; padding:10px;"> </p>
+            </div>
+          </div>
+
+          <!--- Answer  -->
+          <div class="math-render">
+            <br>
+            <label><b>Answer</b></label> <br>
+            <input type="text" name="answer" id="id_answer">
+          </div>
+
+          <!--- Problem Type (Graph)  -->
+          <div class="choice-render" id="graph">
+            <br>
+            <label><b>Problem Type (Graph)</b></label> <br>
+            <div>
+              <div class="form-check" style="float:left">
+                <input class="form-check-input" name="graph_type1" type="checkbox" value="Line" id="typeCheck1">
+                <label class="form-check-label" for="typeCheck1">Line &emsp;</label>
+              </div>
+              <div class="form-check" style="float:left">
+                <input class="form-check-input" name="graph_type2" type="checkbox" value="Circle" id="typeCheck2">
+                <label class="form-check-label" for="typeCheck2">Circle &emsp;</label>
+              </div>
+              <div class="form-check" style="float:left">
+                <input class="form-check-input" name="graph_type3" type="checkbox" value="Square" id="typeCheck3">
+                <label class="form-check-label" for="typeCheck3">Square &emsp;</label>
+              </div>
+              <div class="form-check" style="float:left">
+                <input class="form-check-input" name="graph_type4" type="checkbox" value="Rectangle" id="typeCheck4">
+                <label class="form-check-label" for="typeCheck4">Rectangle &emsp;</label>
+              </div>
+              <div class="form-check" style="float:left">
+                <input class="form-check-input" name="graph_type5" type="checkbox" value="Triangle" id="typeCheck5">
+                <label class="form-check-label" for="typeCheck5">Triangle &emsp;</label>
+              </div>
+              <div class="form-check" style="float:left">
+                <input class="form-check-input" name="graph_type6" type="checkbox" value="Rhombus" id="typeCheck6">
+                <label class="form-check-label" for="typeCheck6">Rhombus &emsp;</label>
+              </div>
+              <div class="form-check" style="float:left">
+                <input class="form-check-input" name="graph_type7" type="checkbox" value="Parallelogram"
+                  id="typeCheck7">
+                <label class="form-check-label" for="typeCheck7">Parallelogram &emsp;</label>
+              </div>
+              <div class="form-check" style="float:left">
+                <input class="form-check-input" name="graph_type8" type="checkbox" value="Trapezoid" id="typeCheck8">
+                <label class="form-check-label" for="typeCheck8">Trapezoid &emsp;</label>
+              </div>
+              <div class="form-check" style="float:left">
+                <input class="form-check-input" name="graph_type9" type="checkbox" value="Other" id="typeCheck9">
+                <label class="form-check-label" for="typeCheck9">Other &emsp;</label>
+              </div>
+            </div>
+          </div>
+
+          <!--- Problem Type (Goal)  -->
+          <div class="choice-render" id="goal">
+            <br>
+            <label><b>Problem Type (Goal)</b></label> <br>
+            <div>
+              <div class="form-check" style="float:left">
+                <input class="form-check-input" name="goal_type1" type="checkbox" value="Length" id="goalCheck1">
+                <label class="form-check-label" for="goalCheck1">Length &emsp;</label>
+              </div>
+              <div class="form-check" style="float:left">
+                <input class="form-check-input" name="goal_type2" type="checkbox" value="Angle" id="goalCheck2">
+                <label class="form-check-label" for="goalCheck2">Angle &emsp;</label>
+              </div>
+              <div class="form-check" style="float:left">
+                <input class="form-check-input" name="goal_type3" type="checkbox" value="Area" id="goalCheck3">
+                <label class="form-check-label" for="goalCheck3">Area &emsp;&emsp;</label>
+              </div>
+              <div class="form-check" style="float:left">
+                <input class="form-check-input" name="goal_type4" type="checkbox" value="Ratio" id="goalCheck4">
+                <label class="form-check-label" for="goalCheck4">Ratio &emsp;&emsp;</label>
+              </div>
+              <div class="form-check" style="float:left">
+                <input class="form-check-input" name="goal_type5" type="checkbox" value="Other" id="goalCheck5">
+                <label class="form-check-label" for="goalCheck5">Other &emsp;</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!--- Comment  -->
+        <div class="card" style="padding:10px; background-color:#e5f2ff">
+          <div class="">
+            <label><b>Comment</b></label><br>
+            <textarea type="text" name="comment" id="id_comment" style="width:100%; height:30px;"> </textarea>
+          </div>
+        </div>
+        
+        <!--- Save Part  -->
+        <div class="">
+          <br><br>
+          {% block Save %}{% endblock %}
+          <br>
+        </div>
+      </div>
+    </div>
+  </form>
+</body>
+
+{% block scripts %}
+  <!-- &copy; Copyright 2021 Geometry3K Team -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      extensions: ["tex2jax.js"],
+      jax: ["input/TeX", "output/HTML-CSS"],
+      tex2jax: {
+        inlineMath: [ ['$','$'] ],
+        processEscapes: true
+      },
+      "HTML-CSS": { availableFonts: ["TeX"] }
+    });
+  </script>
+{% endblock %}
+
+</html>

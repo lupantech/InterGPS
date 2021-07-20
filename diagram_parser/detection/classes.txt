@@ -1,0 +1,11 @@
+angle, 0
+double angle, 1
+triple angle, 2
+bar, 3
+double bar, 4
+triple bar, 5
+parallel, 6
+double parallel, 7
+triple parallel, 8
+perpendicular, 9
+text, 10

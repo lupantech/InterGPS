@@ -90,7 +90,7 @@ python test.py --label random --strategy random --use_annotated
 python test.py --label low-first --strategy low-first --use_annotated
 ```
 
-All these result files reported in the Table 7 are released in [`symbolic_solver/pred_results`](https://github.com/lupantech/InterGPS/tree/main/symbolic_solver/pred_results) and [`symbolic_solver/logs`](https://github.com/lupantech/InterGP/tree/main/symbolic_solver/logs), respectively.
+All these result files reported in the Table 7 are released in [`symbolic_solver/pred_results`](https://github.com/lupantech/InterGPS/tree/main/symbolic_solver/pred_results) and [`symbolic_solver/logs`](https://github.com/lupantech/InterGPS/tree/main/symbolic_solver/logs), respectively.
 
 ### Calculate Accuracies
 
@@ -136,7 +136,7 @@ python diagram_parser.py \
 --output_path ../diagram_logic_forms.json
 ~~~
 
-## 
+
 
 ## Theorem Predictor
 

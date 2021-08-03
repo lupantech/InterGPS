@@ -179,7 +179,7 @@ cd theorem_predict/models
 wget https://acl2021-intergps.s3.us-west-1.amazonaws.com/tp_model_best.pt
 ```
 
-4. Evaluate the the theorem predictor to generate predicted theorem sequences:
+5. Evaluate the the theorem predictor to generate predicted theorem sequences:
 
 ```shell
 cd theorem_predict

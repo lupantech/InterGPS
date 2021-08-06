@@ -1,0 +1,11 @@
+angle
+double angle
+triple angle
+bar
+double bar
+triple bar
+parallel
+double parallel
+triple parallel
+perpendicular
+text

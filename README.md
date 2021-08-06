@@ -4,7 +4,7 @@ Code and data for ACL 2021 Paper "[Inter-GPS: Interpretable Geometry Problem Sol
 
 We construct a new large-scale benchmark, **Geometry3K**, which consists of 3,002 geometry problems with dense annotation in formal language. We define 91 predicates and their corresponding literal templates to describe each problem. All predicates are defined in [here](https://github.com/lupantech/InterGPS/blob/main/predicates.md). Four data examples in the *Geometry3K* dataset are shown below:
 
-![image-20210514233045024](data/example.png)
+![example](data/example.png)
 
 We further propose a novel geometry solving approach with formal language and symbolic reasoning, called Interpretable Geometry Problem Solver (**Inter-GPS**). Inter-GPS is the first geometry problem solver that achieves automatic program parsing and interpretable  symbolic reasoning. Inter-GPS parses the problem text and diagram into formal language automatically via rule-based text parsing and neural object detecting, respectively. Moreover, Inter-GPS incorporates theorem knowledge as conditional rules and performs symbolic reasoning step by step. 
 
@@ -221,11 +221,11 @@ cd annotation_tool/data_collection
 python app.py
 ```
 
+![labelImg](annotation_tool/data_collection.png)
+
 ### Symbol Labeling
 
-[LabelImg](https://github.com/tzutalin/labelImg) is a graphical image annotation tool and label object bounding boxes in images. We use this tool to label text regions and symbols in the diagram.
-
-Follow the [instructions](https://github.com/tzutalin/labelImg#installation) to install the LabelImg package:
+[LabelImg](https://github.com/tzutalin/labelImg) is a graphical image annotation tool and label object bounding boxes in images. We use this tool to label text regions and symbols in the diagram. If you are using the Linux system, you can just run the following commands to install the tool:
 
 ```shell
 cd annotation_tool/labelImg
@@ -239,6 +239,12 @@ Run the labeling tool:
 ```shell
 python labelImg.py
 ```
+
+After running the tool, click the `Open Dir` button to open the data directory containing problem images, for example, `InterGPS/data/geometry3k/symbols`, and choose `Use default label` to use pre-defined labels in [data/predefined_classes.txt](https://github.com/lupantech/InterGPS/blob/main/annotation_tool/labelImg/data/predefined_classes.txt). Note that pre-defined labels in [data/predefined_classes.txt](https://github.com/lupantech/InterGPS/blob/main/annotation_tool/labelImg/data/predefined_classes.txt) are consistent with labels in [diagram_parser/detection/classes.txt](diagram_parser/detection/classes.txt).
+
+![labelImg](annotation_tool/labelImg.png)
+
+Follow the [instructions](https://github.com/tzutalin/labelImg#labelimg) to install the LabelImg package on other systems or learn more about the usage details.
 
 
 

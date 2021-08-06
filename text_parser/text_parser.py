@@ -2054,7 +2054,7 @@ def parse(text):
 if __name__ == "__main__":
 
     DATA_PATH = '../data/geometry3k'
-    OUTPUT_FILE = 'text_logic_forms.json'
+    OUTPUT_FILE = './text_logic_forms.json'
 
     output_data = {}
     count_success = 0

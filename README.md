@@ -175,7 +175,9 @@ python train_transformer.py
 If you want save time, you could skip the step above and download checkpoint model directly:
 
 ```shell
-cd theorem_predict/models
+cd theorem_predict
+mkdir models
+cd models
 wget https://acl2021-intergps.s3.us-west-1.amazonaws.com/tp_model_best.pt
 ```
 

@@ -169,6 +169,7 @@ python merge_all_correct_json.py
 4. (Optional) Train the theorem predictor from scratch:
 
 ```shell
+cd theorem_predict
 python train_transformer.py
 ```
 

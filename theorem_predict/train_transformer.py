@@ -12,7 +12,6 @@ from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 
 from transformers import BartTokenizerFast, BartForConditionalGeneration, get_linear_schedule_with_warmup
-tokenizer = BartTokenizerFast.from_pretrained('facebook/bart-base')
 
 
 def setup_seed(seed):

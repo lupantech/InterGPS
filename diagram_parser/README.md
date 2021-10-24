@@ -25,7 +25,7 @@ cd detection
 python train.py --dataset csv \
 --csv_train geometry_labels.csv \
 --csv_classes classes.txt \
---cvs_val geometry_labels_val.csv \
+--csv_val geometry_labels_val.csv \
 --output_path models
 ```
 

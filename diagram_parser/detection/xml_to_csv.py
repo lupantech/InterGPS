@@ -3,6 +3,7 @@ import glob
 import pandas as pd
 import xml.etree.ElementTree as ET
 import json
+import argparse
 import imagehash
 from PIL import Image
 hash = set() 

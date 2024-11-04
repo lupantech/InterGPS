@@ -10,7 +10,7 @@ Note that we have annotated each symbol in *Geometry3k*: `../data/geometry3k/sym
 
 ```shell
 cd detection
-python xml_to_csv.py --annotated_path ../data/geometry3k/symbols
+python xml_to_csv.py --annotated_path ../../data/geometry3k/symbols
 ```
 
 It will generate two files:

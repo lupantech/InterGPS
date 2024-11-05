@@ -6,7 +6,7 @@ We apply the [RetinaNet](https://github.com/yhenon/pytorch-retinanet) model to d
 
 ## Fine-tune the detection model
 
-Note that we have annotated each symbol in *Geometry3k*: `../data/geometry3k/symbols`. Preprocess the symbol to prepare the training and test data:
+Note that we have annotated each symbol in *Geometry3k*: `../../data/geometry3k/symbols`. Preprocess the symbol to prepare the training and test data:
 
 ```shell
 cd detection

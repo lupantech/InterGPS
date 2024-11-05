@@ -6,8 +6,6 @@ from retinanet import model
 from retinanet.dataloader import CSVDataset, Resizer, Normalizer
 from retinanet import csv_eval
 
-assert torch.__version__.split('.')[0] == '1'
-
 print('CUDA available: {}'.format(torch.cuda.is_available()))
 
 

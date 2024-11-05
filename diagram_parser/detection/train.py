@@ -6,7 +6,7 @@ import numpy as np
 
 import torch
 import torch.optim as optim
-from torchvision import transforms
+from torchvision.transforms import v2 as transforms
 
 from retinanet import model
 from retinanet.dataloader import CocoDataset, CSVDataset, collater, Resizer, AspectRatioBasedSampler, Augmenter, \
@@ -15,8 +15,6 @@ from torch.utils.data import DataLoader
 
 from retinanet import coco_eval
 from retinanet import csv_eval
-
-assert torch.__version__.split('.')[0] == '1'
 
 print('CUDA available: {}'.format(torch.cuda.is_available()))
 
@@ -33,7 +31,7 @@ def main(args=None):
     parser.add_argument('--depth', help='Resnet depth, must be one of 18, 34, 50, 101, 152', type=int, default=152)
     parser.add_argument('--batch_size', help='Number of training batch size', type=int, default=2)
     parser.add_argument('--epochs', help='Number of epochs', type=int, default=100)
-    parser.add_argument('--lr', help='learning rate', type=float, default=1e-5)
+    parser.add_argument('--lr', help='learning rate', type=float, default=1)
     parser.add_argument('--output_path', help='Path to saved models', type=str, default="models")
 
     parser = parser.parse_args(args)
@@ -124,7 +122,7 @@ def main(args=None):
 
         for iter_num, data in enumerate(dataloader_train):
             try:
-                optimizer.zero_grad()
+                optimizer.zero_grad(set_to_none=True) # memory optimisation
 
                 if torch.cuda.is_available():
                     classification_loss, regression_loss = retinanet([data['img'].cuda().float(), data['annot']])
@@ -140,7 +138,7 @@ def main(args=None):
                     continue
 
                 loss.backward()
-                torch.nn.utils.clip_grad_norm_(retinanet.parameters(), 0.1)
+
                 optimizer.step()
 
                 loss_hist.append(float(loss))

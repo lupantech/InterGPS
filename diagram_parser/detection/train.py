@@ -31,7 +31,7 @@ def main(args=None):
     parser.add_argument('--depth', help='Resnet depth, must be one of 18, 34, 50, 101, 152', type=int, default=152)
     parser.add_argument('--batch_size', help='Number of training batch size', type=int, default=2)
     parser.add_argument('--epochs', help='Number of epochs', type=int, default=100)
-    parser.add_argument('--lr', help='learning rate', type=float, default=1)
+    parser.add_argument('--lr', help='learning rate', type=float, default=1e-5)
     parser.add_argument('--output_path', help='Path to saved models', type=str, default="models")
 
     parser = parser.parse_args(args)
@@ -104,7 +104,7 @@ def main(args=None):
 
     retinanet.training = True
 
-    optimizer = optim.Adam(retinanet.parameters(), lr=1e-5)
+    optimizer = optim.Adam(retinanet.parameters(), lr=parser.lr)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=3, verbose=True)
     loss_hist = collections.deque(maxlen=500)
 

@@ -19,3 +19,5 @@ __pycache__
 
 diagram_parser/detection_results/ocr_results/*
 diagram_parser/detection_results/box_results/*
+diagram_parser/detection/geometry_labels_val.csv
+diagram_parser/detection/geometry_labels.csv

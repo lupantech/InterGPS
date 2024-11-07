@@ -6,7 +6,7 @@ import numpy as np
 
 import torch
 import torch.optim as optim
-from torchvision import transforms
+from torchvision.transforms import v2 as transforms
 
 from retinanet import model
 from retinanet.dataloader import CocoDataset, CSVDataset, collater, Resizer, AspectRatioBasedSampler, Augmenter, \
@@ -15,8 +15,6 @@ from torch.utils.data import DataLoader
 
 from retinanet import coco_eval
 from retinanet import csv_eval
-
-assert torch.__version__.split('.')[0] == '1'
 
 print('CUDA available: {}'.format(torch.cuda.is_available()))
 
@@ -106,7 +104,7 @@ def main(args=None):
 
     retinanet.training = True
 
-    optimizer = optim.Adam(retinanet.parameters(), lr=1e-5)
+    optimizer = optim.Adam(retinanet.parameters(), lr=parser.lr)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=3, verbose=True)
     loss_hist = collections.deque(maxlen=500)
 
@@ -124,7 +122,7 @@ def main(args=None):
 
         for iter_num, data in enumerate(dataloader_train):
             try:
-                optimizer.zero_grad()
+                optimizer.zero_grad(set_to_none=True) # memory optimisation
 
                 if torch.cuda.is_available():
                     classification_loss, regression_loss = retinanet([data['img'].cuda().float(), data['annot']])
@@ -140,7 +138,7 @@ def main(args=None):
                     continue
 
                 loss.backward()
-                torch.nn.utils.clip_grad_norm_(retinanet.parameters(), 0.1)
+
                 optimizer.step()
 
                 loss_hist.append(float(loss))

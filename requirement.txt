@@ -4,7 +4,7 @@ imagehash
 pycocotools
 scikit-image
 opencv-python
-sklearn
+scikit-learn
 antlr4-python3-runtime
 
 # the symbolic solver

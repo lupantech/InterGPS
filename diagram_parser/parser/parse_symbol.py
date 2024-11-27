@@ -62,7 +62,7 @@ def generate_label(graph_parse, ocr_result, delete_points, factor, log_message):
         
         if "^{\circ}" in label:
             structure['type'] = 'angle angle'
-            structure['label'] = label[0: label.find("^{\circ}")]
+            structure['label'] = label[0: label.find(r"^{\circ}")]
         elif len(label) == 1 and label.isalpha():
             alpha = 1
             if len(line_distances) > 0 and len(point_distances) > 0:

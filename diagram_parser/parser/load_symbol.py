@@ -64,8 +64,11 @@ def load_symbol(problem_list, ocr_path, box_path):
                 with open(os.path.join(current_path, tex_id + ".txt"), "r") as f:
                     position = tuple(map(int, f.readline().split(',')[:-1]))
                 #print (position, os.path.join(current_path, tex_id + ".json"))
-                with open(os.path.join(current_path, tex_id + ".json"), "r") as f:
-                    mathpix = json.load(f)
+                try:
+                    with open(os.path.join(current_path, tex_id + ".json"), "r") as f:
+                        mathpix = json.load(f)
+                except FileNotFoundError:
+                    raise Exception("Can not find the mathpix result:", os.path.join(current_path, tex_id + ".json"))
                 
                 label = ""
                 if 'data' in mathpix and type(mathpix['data']) in [list, tuple] and len(mathpix['data']) > 0:

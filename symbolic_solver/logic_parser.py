@@ -1,3 +1,5 @@
+from contextlib import redirect_stdout
+import io
 from pyparsing import Optional, alphanums, Forward, Group, Word, Literal, ZeroOrMore
 
 from extended_definition import ExtendedDefinition
@@ -15,7 +17,7 @@ class LogicParser:
         self.logic = logic
         self.expression = Forward()
 
-        identifier = Word(alphanums + ' +-*/.\\\{\}^_$\'')
+        identifier = Word(alphanums + r' +-*/.\\\{\}^_$\'')
         # integer  = Word( nums )
         lparen = Literal("(").suppress()  # suppress "(" in the result
         rparen = Literal(")").suppress()  # suppress ")" in the result
@@ -46,11 +48,9 @@ class LogicParser:
                 if expr.find("angle") != -1:  # 'angle_1'
                     return Symbol(expr)
                 try:
-                    import sys
-                    savedStdout = sys.stdout
-                    sys.stdout = None  # close the stdout to mute the warning information
-                    val = parse_latex(expr).evalf()  # evaluate the latex expression to a numerical value
-                    sys.stdout = savedStdout  # open the stdout
+                    with io.StringIO() as buf, redirect_stdout(buf):
+                        val = parse_latex(expr).evalf()  # evaluate the latex expression to a numerical value
+
                     return val
                 except:
                     return self.EvaluateSymbols(expr)  # special case: convert the expression to a symbol

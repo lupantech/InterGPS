@@ -651,7 +651,7 @@ class LogicSolver:
 
         if target is None:
             return None
-        assert (self.can_search, "Please execute initSearch() before search.")
+        assert self.can_search, "Please execute initSearch() before search."
 
         # try to get the answer before using theorems
         step_lst = []

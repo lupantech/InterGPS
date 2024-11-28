@@ -42,7 +42,7 @@ def multithread_solve(parameters):
         legal = True
         import re
         #print (re.split(',\(\)', result))
-        for element in re.split('[,\(\)]', result):
+        for element in re.split(r'[,\(\)]', result):
             try:
                 val = int(element.replace('point_', ''))
                 if val in delete_points:

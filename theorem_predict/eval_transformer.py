@@ -45,7 +45,7 @@ def evaluate(diagram_logic_file, text_logic_file, tokenizer_name, model_name, ch
         seq = []
         for j in range(seq_num):
             res = tokenizer.decode(output[j].tolist())
-            res = res.replace("</s>", "").replace("<s>", "").replace("<pad>", "")
+            res = '['+res.replace("</s>", "").replace("<s>", "").replace("<pad>", "")
             # print(res)
             try:
                 res = ast.literal_eval(res) # string class to list class

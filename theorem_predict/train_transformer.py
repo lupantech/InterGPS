@@ -65,7 +65,7 @@ if __name__ == '__main__':
         total_loss = 0
         model.train()
         for idx, (input, output) in enumerate(train_loader):
-            optimizer.zero_grad()
+            optimizer.zero_grad(set_to_none=True)
             res = model(input.to(device), labels=output[:, 1:].contiguous().to(device),
                         decoder_input_ids=output[:, :-1].contiguous().to(device))
             loss = res.loss
@@ -76,13 +76,17 @@ if __name__ == '__main__':
         print('\nepoch: ', epoch, " train_loss ", total_loss)
         torch.save(model.state_dict(), output_path+"/tp_model_" + str(epoch) + ".pt")
 
-        total_loss = 0
-        model.eval()
-        for idx, (input, output) in enumerate(val_loader):
-            res = model(input.to(device), labels=output[:, 1:].contiguous().to(device),
-                        decoder_input_ids=output[:, :-1].contiguous().to(device))
-            loss = res.loss
-            total_loss += loss.item()
+
+        del input, output
+        optimizer.zero_grad(set_to_none=True)
+        with torch.no_grad():
+            total_loss = 0
+            model.eval()
+            for idx, (input, output) in enumerate(val_loader):
+                res = model(input.to(device), labels=output[:, 1:].contiguous().to(device),
+                            decoder_input_ids=output[:, :-1].contiguous().to(device))
+                loss = res.loss
+                total_loss += loss.item()
         if total_loss < best_loss:
             best_loss = total_loss
             torch.save(model.state_dict(), output_path+"/tp_model_best.pt")

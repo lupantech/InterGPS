@@ -145,8 +145,11 @@ class LogicParser:
             if self.logic.point_positions is not None:
                 p = [self.logic.point_positions[x] for x in tree[1:]]
                 cross = lambda u, v: u[0] * v[1] - u[1] * v[0]
-                c1 = cross((p[1][0] - p[0][0], p[1][1] - p[0][1]), (p[2][0] - p[3][0], p[2][0] - p[3][1]))
-                c2 = cross((p[3][0] - p[0][0], p[3][1] - p[0][1]), (p[2][0] - p[1][0], p[2][0] - p[1][1]))
+                # c1 = cross((p[1][0] - p[0][0], p[1][1] - p[0][1]), (p[2][0] - p[3][0], p[2][0] - p[3][1]))
+                # c2 = cross((p[3][0] - p[0][0], p[3][1] - p[0][1]), (p[2][0] - p[1][0], p[2][0] - p[1][1]))
+                # the initial version of the instance had a writing error, so it has been modified here
+                c1 = cross((p[1][0] - p[0][0], p[1][1] - p[0][1]), (p[2][0] - p[3][0], p[2][1] - p[3][1]))
+                c2 = cross((p[3][0] - p[0][0], p[3][1] - p[0][1]), (p[2][0] - p[1][0], p[2][1] - p[1][1]))
                 if abs(c1) < abs(c2):
                     self.Parallel(['Line', tree[1], tree[2]], ['Line', tree[3], tree[4]])
                 else:

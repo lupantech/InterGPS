@@ -396,9 +396,25 @@ class LogicSolver:
         # Equations in Quadrilateral
         Quadrilaterals = self.logic.find_all_quadrilaterals()
         for quad in Quadrilaterals:
-            expr = sum(
-                [self.logic.find_angle_measure((quad[i], quad[(i + 1) % 4], quad[(i + 2) % 4]))[0] for i in range(4)])
-            self.equations.append(expr - 180 * (len(quad) - 2))
+            reflex = self.reflex_angle(quad)
+            expr1 = sum(
+                [self.logic.find_angle_measure((quad[i], quad[(i + 1) % 4], quad[(i + 2) % 4]))[0]
+                 for i in range(4) if quad[(i + 1) % 4] not in reflex])
+            expr2 = sum(
+                [360 - self.logic.find_angle_measure((quad[i], quad[(i + 1) % 4], quad[(i + 2) % 4]))[0]
+                 for i in range(4) if quad[(i + 1) % 4] in reflex])
+            self.equations.append(expr1 + expr2 - 180 * (len(quad) - 2))
+        # Equations in Pentagon
+        Pentagons = self.logic.find_all_pentagons()
+        for pent in Pentagons:
+            reflex = self.reflex_angle(pent)
+            expr1 = sum(
+                [self.logic.find_angle_measure((pent[i], pent[(i + 1) % 5], pent[(i + 2) % 5]))[0]
+                    for i in range(5) if pent[(i + 1) % 5] not in reflex])
+            expr2 = sum(
+                [360 - self.logic.find_angle_measure((pent[i], pent[(i + 1) % 5], pent[(i + 2) % 5]))[0]
+                    for i in range(5) if pent[(i + 1) % 5] in reflex])
+            self.equations.append(expr1 + expr2 - 180 * (len(pent) - 2))
 
     def func14_similar_triangle_theorem(self):
         triangles = self.logic.find_all_triangles()
@@ -610,6 +626,7 @@ class LogicSolver:
         self.logic.init_all_uni_lines()  # initialize all the uni-lines (the line do not contain other lines)
         self.logic.find_hidden_polygons(3)  # find all triangles
         self.logic.find_hidden_polygons(4)  # find all quads
+        self.logic.find_hidden_polygons(5)  # find all pentagons
         self.logic.expand_angles()  # add the rest (hidden) angles into the graph and give each of them a symbol
         self.logic.set_angle_sum()  # resolve the relation among angles
         self.logic.set_line_sum()  # resolve the relation among lines (e.g, AB+BC = AC)
@@ -746,3 +763,24 @@ class LogicSolver:
                     if now_answer is not None:
                         return now_answer, steps, step_lst
             return None, steps, step_lst
+
+    def reflex_angle(self, points):  # find all the reflex angles in a polygon
+        p = [self.logic.point_positions[x] for x in points]
+        p.sort(key=lambda x: (x[0], x[1]))
+        cross = lambda p, q, r: (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0])
+        lower = []
+        for x in p:
+            while len(lower) > 1 and cross(lower[-2], lower[-1], x) <= 0:
+                lower.pop()
+            lower.append(x)
+        upper = []
+        for x in reversed(p):
+            while len(upper) > 1 and cross(upper[-2], upper[-1], x) <= 0:
+                upper.pop()
+            upper.append(x)
+        convex_hull = lower[:-1] + upper[:-1]
+        concave_hull = [p[i] for i in range(len(p)) if p[i] not in convex_hull]
+        res = []
+        for i in range(0, len(concave_hull)):
+            res += list(self.logic.point_positions.keys())[list(self.logic.point_positions.values()).index(concave_hull[i])]
+        return res

@@ -336,6 +336,8 @@ class ExtendedDefinition(BasicDefinition):
             res = run(0, tuple(x), self.seem_triangle(*x))
         elif l == 4:
             res = run(0, tuple(x), self.seem_quadrilateral(*x))
+        elif l == 5:
+            res = run(0, tuple(x), self.seem_pentagon(*x))
         else:
             return
         # TODO: l > 4

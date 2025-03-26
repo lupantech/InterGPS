@@ -22,7 +22,7 @@ class LogicParser:
         lparen = Literal("(").suppress()  # suppress "(" in the result
         rparen = Literal(")").suppress()  # suppress ")" in the result
 
-        arg = Group(self.expression) | identifier  # arg can be a grouping expression or a identifier
+        arg = Group(self.expression) | identifier  # arg can be a grouping expression or an identifier
         args = arg + ZeroOrMore(Literal(",").suppress() + arg)  # args: arg1, [*arg2, *arg3, ...]
 
         self.expression <<= identifier + lparen + Optional(args) + rparen  # args is optional

@@ -64,9 +64,15 @@ class BasicDefinition(object):
     def define_equal(self, para1, para2):
         # This function is used to build a bridge between two expressions.
         # If the logic form is Equals(x, y), then we know self.Equal(x, y).
+        res = run(1, (), self.Equal(para1, para2))
+        if len(res) > 0:
+            return False
         facts(self.Equal, (para1, para2))
 
     def define_circle(self, circle):
+        res = run(1, (), self.Circle(circle))
+        if len(res) > 0:
+            return False
         facts(self.Circle, circle)
 
     def define_point(self, points):
@@ -92,6 +98,9 @@ class BasicDefinition(object):
         return True
 
     def define_uni_line(self, point_A, point_B):
+        res = run(1, (), self.UniLine(point_A, point_B))
+        if len(res) > 0:
+            return False
         facts(self.UniLine, (point_A, point_B))
         facts(self.UniLine, (point_B, point_A))
 
@@ -137,6 +146,9 @@ class BasicDefinition(object):
 
     def define_parallel(self, line1, line2):
         # Define two lines parallel
+        res = run(1, (), self.Parallel(line1[0], line1[1], line2[0], line2[1]))
+        if len(res) > 0:
+            return False
         facts(self.Parallel, (line1[0], line1[1], line2[0], line2[1]))
 
     def seem_triangle(self, point_A, point_B, point_C):

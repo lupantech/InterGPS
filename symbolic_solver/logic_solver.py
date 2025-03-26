@@ -4,7 +4,7 @@ import random
 from utils import isNumber, hasNumber, heron_triangle_formula, angle_area_formula
 
 from sympy import Symbol, Number
-from sympy import cos, sin, pi, solve, nonlinsolve
+from sympy import cos, sin, pi, solve, nonlinsolve, nsolve
 
 from itertools import permutations, product, combinations
 
@@ -27,6 +27,8 @@ class LogicSolver:
                        17: self.func17_sine_theorem};
         self.interval = 11
         # <= interval: Propagate;   > interval: Build Equations.
+        self.sympy_solver_time_limit = 20 
+        # sympy solver time limit in seconds
 
     @staticmethod
     def _triangleEqual(length, angle, original_angle):
@@ -67,7 +69,7 @@ class LogicSolver:
 
     @staticmethod
     def _isComplex(st):
-        return st.find("sin") != -1 or st.find("cos") != -1 or st.find("**2") != -1
+        return st.find("sin") != -1 or st.find("cos") != -1 or st.find("**2") != -1 or st.find("sqrt") != -1
 
     @staticmethod
     def _isTrig(st):
@@ -78,7 +80,7 @@ class LogicSolver:
         return any([pair[0] == pair[1] for pair in product(list1, list2)])
 
     def _isPrimitive(self, expr):
-        return self._hasSymbol(expr) and all([str(expr).find(t) == -1 for t in ['+', '-', '*']])
+        return self._hasSymbol(expr) and all([str(expr).find(t) == -1 for t in ['+', '-', '*', '/', '(', ')', '**', 'sqrt']])
 
     def Solve_Equations(self):
         # add equations for angles, lines and arcs
@@ -99,20 +101,28 @@ class LogicSolver:
                 # print ("[equations] arc equations", angle, lst[i-1], lst[i])
                 self.equations.append(lst[i] - lst[i - 1])
 
+        # simplify, discard the equations which are nan or float or int
+        self.equations = [expr.simplify() for expr in self.equations if self._hasSymbol(expr)]
+        self.equations = [expr for expr in self.equations if self._hasSymbol(expr)]
         self.equations = list(set(self.equations))  # remove redundant equations quickly
         self.equations, temp_equations = [], self.equations
-        mp = []
+        
+        # Bad idea: the strategy below for avoiding duplicated equations by using "mp" to store the used symbols.
+        # This idea will remove valuable equations for multivariate equation group, which should not be adopted.
+        # mp = []
         for equation in temp_equations:
             if not type(equation) in [float, int] and len(equation.free_symbols) > 0:  # unknown variables
                 symbols = set(equation.free_symbols)  # {line_XD, line_CX} # symbols: unknown variables in the equation
-                if symbols in mp: continue
+                # if symbols in mp: continue
                 # New Feature: Avoid duplicated equations. # TODO BUG ???
 
                 def discard_zero(t):
                     return 0.0 if abs(t) <= 1e-15 else t
                 self.equations.append(equation.xreplace({n: discard_zero(n) for n in equation.atoms(Number)}))
-                mp.append(symbols)  # mp = [{line_XD, line_CX}, {angle_BOC, arc_OBC}, ...
+                # mp.append(symbols)  # mp = [{line_XD, line_CX}, {angle_BOC, arc_OBC}, ...
 
+        # simplify, discard the equations which are nan or float or int
+        self.equations = [expr.simplify() for expr in self.equations if self._hasSymbol(expr)]
         # for e in self.equations:
         #     if not self._isTrig(e):
         #         selected_equations.append(e)
@@ -130,29 +140,69 @@ class LogicSolver:
 
         if len(self.equations) == 0:
             return False
+
+        # collect the equations with only 1 free symbol
+        symbol2equations ={}
+        total_symbols = set()
+        for e in self.equations:
+            free = list(e.free_symbols)
+            if len(free) == 1:
+                for f in free:
+                    cnt_terms = len(e.as_ordered_terms())
+                    if cnt_terms == 1:
+                        continue
+                    total_symbols.add(f)
+                    if f in symbol2equations:
+                        symbol2equations[f].append(e)
+                    else:
+                        symbol2equations[f] = [e]
+
+        # pick a simple equation for each symbol (which have 1-symbol equations) 
+        symbol2eq = {}
+        for sym,eqs in symbol2equations.items():
+            for e in eqs:
+                if not self._isComplex(str(e)) :
+                    symbol2eq[sym] = e
+                    break
+
+        for sym in total_symbols:
+            if sym not in symbol2eq and sym in symbol2equations:
+                estimate = lambda e: len(e.as_ordered_terms()) + 0.5 * self._isTrig(str(e))
+                eq = min(symbol2equations[sym], key=estimate)
+                symbol2eq[sym] = eq
+
+        # adopt the simple equations to solve (if we have some symbols which have 1-symbol equations)
+        if len(symbol2eq) != 0:
+            self.equations = list(symbol2eq.values())
+
         if self.logic.debug:
             print("Try to solve: ", self.equations)
 
         # solutions1 = solve(self.equations, dict=True, manual=True)  # do not use the polys/matrix method
         try:
-            solutions1 = func_timeout(20, solve, kwargs=dict(f=self.equations, dict=True, manual=True))
+            solutions1 = func_timeout(self.sympy_solver_time_limit, solve, kwargs=dict(f=self.equations, dict=True, manual=True))
         except FunctionTimedOut:
-            raise TimeoutError
+            # if self.logic.debug:
+            print(repr(e), "on sympy.solve")
+            solutions1 = []
+            # raise TimeoutError
 
         complexity = sum([self._isComplex(str(t)) for t in self.equations])
         if complexity <= 3:
             # solutions2 = solve(self.equations, dict = True, manual = False)
             try:
-                solutions2 = func_timeout(20, solve, kwargs=dict(f=self.equations, dict=True, manual=False))
-            except FunctionTimedOut:
-                raise TimeoutError
+                solutions2 = func_timeout(self.sympy_solver_time_limit, solve, kwargs=dict(f=self.equations, dict=True, manual=False))
+            except FunctionTimedOut as e:
+                # if self.logic.debug:
+                print(repr(e), "on sympy.solve")
+                solutions2 = []
+                # raise TimeoutError
         else:
             solutions2 = []
-
-        solutions1_ = [sol for sol in solutions1 if not any(
-            [isNumber(t) and t <= 0 for t in sol.values()])]  # [{line_CX: line_XD, angle_BOC: 0.5*arc_ODC}]
-        solutions2_ = [sol for sol in solutions2 if not any(
-            [isNumber(t) and t <= 0 for t in sol.values()])]  # [{line_CX: line_XD, angle_BOC: 0.5*arc_ODC}]
+            
+        # discard the negative sol value for the symbol which is more than 1 letter (e.g. angle_ABC), but keep negative value for the symbol which is 1-letter-symbol (e.g. x, y, z).
+        solutions1_ = [sol for sol in solutions1 if not any([len(str(key)) > 1 and isNumber(value) and value <= 0 for key, value in sol.items()])]
+        solutions2_ = [sol for sol in solutions2 if not any([len(str(key)) > 1 and isNumber(value) and value <= 0 for key, value in sol.items()])]
 
         solutions = solutions1_ if len(solutions1_) > len(solutions2_) else solutions2_
 
@@ -167,9 +217,11 @@ class LogicSolver:
             if len(total_symbols) > 0:
                 # res = list(nonlinsolve(list(self.equations), total_symbols) )
                 try:
-                    res = list(func_timeout(20, nonlinsolve, args=(list(self.equations), total_symbols)))
-                except FunctionTimedOut:
-                    raise TimeoutError
+                    res = list(func_timeout(self.sympy_solver_time_limit, nonlinsolve, args=(list(self.equations), total_symbols)))
+                except FunctionTimedOut as e:
+                    #if self.logic.debug:
+                    print(repr(e), "on sympy.nonlinsolve")
+                    # raise TimeoutError
 
                 if len(res) > 0:
                     for j in range(len(res)):
@@ -180,6 +232,87 @@ class LogicSolver:
                             if total_symbols[i] != list(res[j])[i]:
                                 sol[total_symbols[i]] = list(res[j])[i]
                         solutions.append(sol)
+                else:
+                    # try to use numerical solver sympy.nsolve
+                    sol_ok = True
+                    try:
+                        init_guess=[]
+                        for i in range(len(total_symbols)):
+                            init_guess.append(0.1)
+                        res = func_timeout(self.sympy_solver_time_limit, nsolve, args=(list(self.equations), total_symbols,init_guess)).tolist()
+                        if len(res) > 0:
+                            for i in range(len(total_symbols)):
+                                if total_symbols[i] != res[i][0]:
+                                        if not res[i][0].is_real:
+                                            sol_ok = False
+                                            break
+
+                    except FunctionTimedOut as e:
+                        print(repr(e), "on sympy.nsolve")
+                        sol_ok = False
+                        #raise TimeoutError
+                    except NotImplementedError as nie:
+                        print(repr(nie), "on sympy.nsolve")
+                        sol_ok = False
+                    except ValueError as e:
+                        print(repr(e), "on sympy.nsolve")
+                        sol_ok=False
+                        if (repr(e)=="ValueError('matrix is not positive-definite')"):
+                            raise e
+
+                    # give more chances for numerical solver sympy.nsolve with different init guess
+                    if not sol_ok:
+                        res = []
+                        cnt=30
+                        while(len(res) <= 0 and cnt > 0 and not sol_ok):
+                            cnt -= 1
+                            init_guess = []
+                            for i in range(len(total_symbols)):
+                                # random guess
+                                init_guess.append(random.uniform(-100, 100))
+                            try:
+                                res = func_timeout(self.sympy_solver_time_limit, nsolve, args=(list(self.equations), total_symbols, init_guess)).tolist()
+                            except FunctionTimedOut as e:
+                                #if self.logic.debug:
+                                print(repr(e), "on sympy.nsolve")
+                                break
+                            except NotImplementedError as nie:
+                                if self.logic.debug:
+                                    print(repr(nie), "on sympy.nsolve")
+                                break
+                            except ValueError as ee:
+                                if self.logic.debug:
+                                    print(repr(ee), "on sympy.nsolve")
+                                continue
+
+                            if len(res) > 0:
+                                sol_ok = True
+                                for i in range(len(total_symbols)):
+                                    if total_symbols[i] != res[i][0]:
+                                        if not res[i][0].is_real:
+                                            sol_ok = False
+                                            break
+
+                    if len(res) > 0:
+                        sol = dict()
+                        sol_ok = True
+                        for i in range(len(total_symbols)):
+                            if total_symbols[i] != res[i][0]:
+                                # if res[i][0] is complex number, we should discard it.
+                                if len(res[i][0].free_symbols)==0:
+                                    if res[i][0].is_real:
+                                        sol[total_symbols[i]] = res[i][0]
+                                    else:
+                                        sol_ok = False
+                                        break
+
+                                sol[total_symbols[i]] = res[i][0]
+                        if sol_ok:
+                            solutions.append(sol)
+
+        # discard the solution value with Image Number 'I'
+        solutions = [sol for sol in solutions if not any([str(val).find('*I') != -1 for val in sol.values()])]
+
         if len(solutions) >= 1:
             # Handle with multiple solution
             estimate = lambda sol: sum([str(expr)[0] != '-' for expr in sol.values()])  # negative value
@@ -224,6 +357,7 @@ class LogicSolver:
         for tri in triangles:
             angles = self._generateAngles(tri)
             measures = [self.logic.find_angle_measure(x) for x in angles]
+            self.equations.append(measures[0][0] + measures[1][0] + measures[2][0] - 180)
             unknowns = [i for i in range(3) if not hasNumber(measures[i])]
             if len(unknowns) == 3:
                 Update = self.logic.define_angle_measure(*angles[0], 180 - measures[1][0] - measures[2][0]) or Update
@@ -239,6 +373,8 @@ class LogicSolver:
             for ch in permutations([0, 1, 2]):
                 if self._same(measures[ch[0]], measures[ch[1]]):
                     Update = self.logic.lineEqual(lines[ch[0]], lines[ch[1]]) or Update
+                    line_measures = [self.logic.find_line_with_length(x) for x in [lines[ch[0]], lines[ch[1]]]]
+                    self.equations.append(line_measures[0][0] - line_measures[1][0])
         return Update
 
     def func4_isosceles_triangle_theorem_angle(self):
@@ -252,6 +388,8 @@ class LogicSolver:
             for ch in permutations([0, 1, 2]):
                 if self._same(length[ch[0]], length[ch[1]]):
                     Update = self.logic.angleEqual(angles[ch[0]], angles[ch[1]]) or Update
+                    angle_measures = [self.logic.find_angle_measure(x) for x in [angles[ch[0]], angles[ch[1]]]]
+                    self.equations.append(angle_measures[0][0] - angle_measures[1][0])
         return Update
 
     def func5_congruent_triangles_theorem_line(self):
@@ -259,6 +397,8 @@ class LogicSolver:
         triangles = self.logic.find_all_triangles()
         comb = combinations(triangles, 2)
         for pair in comb:
+            # Accelerate
+            if set(pair[0]) == set(pair[1]): continue
             for tri1 in permutations(pair[0]):
                 tri2 = pair[1]
                 lines = self._generateLines(tri1) + self._generateLines(tri2)
@@ -271,6 +411,8 @@ class LogicSolver:
                 if self._triangleEqual(same_length, same_angle, angles):
                     for ch in range(3):
                         Update = self.logic.lineEqual(lines[ch], lines[ch + 3]) or Update
+                        line_measure_pair = [self.logic.find_line_with_length(x) for x in [lines[ch], lines[ch + 3]]]
+                        self.equations.append(line_measure_pair[0][0] - line_measure_pair[1][0])
         return Update
 
     def func6_congruent_triangles_theorem_angle(self):
@@ -278,6 +420,8 @@ class LogicSolver:
         triangles = self.logic.find_all_triangles()
         comb = combinations(triangles, 2)
         for pair in comb:
+            # Accelerate
+            if set(pair[0]) == set(pair[1]): continue
             for tri1 in permutations(pair[0]):
                 tri2 = pair[1]
                 lines = self._generateLines(tri1) + self._generateLines(tri2)
@@ -291,6 +435,8 @@ class LogicSolver:
                     for ch in range(3):
                         Update = self.logic.angleEqual(self._generateAngles(tri1)[ch],
                                                        self._generateAngles(tri2)[ch]) or Update
+                        self.equations.append(angles[ch][0] - angles[ch + 3][0])
+
         return Update
 
     def func7_radius_equal_theorem(self):
@@ -302,6 +448,9 @@ class LogicSolver:
                 # The length of each radius is same.
                 for i in range(len(points) - 1):
                     Update = self.logic.lineEqual((circle, points[i]), (circle, points[i + 1])) or Update
+                    line_measure_pair = [self.logic.find_line_with_length(x) for x in [(circle, points[i]), (circle, points[i + 1])]]
+                    self.equations.append(line_measure_pair[0][0] - line_measure_pair[1][0])
+
         return Update
 
     def func8_tangent_radius_theorem(self):
@@ -322,8 +471,30 @@ class LogicSolver:
             for x, y, z in permutations(points, 3):
                 if self.logic.cross(center, x, y) > 0: continue
                 if all([self.logic.check_line((p, q)) for p, q in [(x, z), (y, z)]]):
-                    center_angle = self.logic.find_arc_measure((center, x, y))[0]
-                    Update = self.logic.defineAngle(x, z, y, 0.5 * center_angle) or Update
+                    if self.logic.cross(x,y,z) <=0: # z is on the major arc yx
+                        center_angle = self.logic.find_arc_measure((center, x, y))[0]
+                        Update = self.logic.defineAngle(x, z, y, 0.5 * center_angle) or Update
+                        center_angle = self.logic.find_angle_measure((x, center, y))[0]
+                        Update = self.logic.defineAngle(x, z, y, 0.5 * center_angle) or Update
+
+                        angle_measure = self.logic.find_angle_measure((x, z, y))
+                        certer_angle_measure = self.logic.find_angle_measure((x, center, y))
+                        self.equations.append(angle_measure[0] - 0.5 * certer_angle_measure[0])
+                        certer_angle_measure = self.logic.find_arc_measure((center, x, y))
+                        self.equations.append(angle_measure[0] - 0.5 * certer_angle_measure[0])
+
+                    else: # z is on the minor arc xy
+                        center_angle = self.logic.find_arc_measure((center, y, x))[0]
+                        Update = self.logic.defineAngle(x, z, y, 0.5 * center_angle) or Update
+                        center_angle = self.logic.find_angle_measure((x, center, y))[0]
+                        Update = self.logic.defineAngle(x, z, y, 180 - 0.5 * center_angle) or Update
+
+                        angle_measure = self.logic.find_angle_measure((x, z, y))
+                        certer_angle_measure = self.logic.find_arc_measure((center, y, x))
+                        self.equations.append(angle_measure[0] - 0.5 * certer_angle_measure[0])
+                        certer_angle_measure = self.logic.find_angle_measure((x, center, y))
+                        self.equations.append(angle_measure[0] + 0.5 * certer_angle_measure[0] - 180)
+
         return Update
 
     def func10_parallel_lines_theorem(self):
@@ -355,12 +526,16 @@ class LogicSolver:
                 # It is guaranteed that all the angle has at least one symbol.
                 if A[0] != p and B[-1] != q:
                     Update = self.logic.angleEqual(angles[0], angles[3]) or Update
+                    self.equations.append(measures[0][0] - measures[3][0])
                 if A[-1] != p and B[0] != q:
                     Update = self.logic.angleEqual(angles[1], angles[2]) or Update
+                    self.equations.append(measures[1][0] - measures[2][0])
                 if A[0] != p and B[0] != q:
                     Update = self.logic.define_angle_measure(*angles[0], 180 - measures[2][0]) or Update
+                    self.equations.append(measures[0][0] + measures[2][0] - 180)
                 if A[-1] != p and B[-1] != q:
                     Update = self.logic.define_angle_measure(*angles[1], 180 - measures[3][0]) or Update
+                    self.equations.append(measures[1][0] + measures[3][0] - 180)
         return Update
 
     def func11_flat_angle_theorem(self):
@@ -374,6 +549,9 @@ class LogicSolver:
             for point in points:
                 val = self.logic.find_angle_measure((point, angle[1], angle[2]))[0]
                 Update = self.logic.define_angle_measure(angle[0], angle[1], point, 180 - val) or Update
+                angle_measures = [self.logic.find_angle_measure(x) for x in [(angle[0], angle[1], point), (point, angle[1], angle[2])]]
+                self.equations.append(angle_measures[0][0] + angle_measures[1][0] - 180)
+
         return Update
 
     def func12_intersecting_chord_theorem(self):
@@ -420,6 +598,8 @@ class LogicSolver:
         triangles = self.logic.find_all_triangles()
         comb = combinations(triangles, 2)
         for pair in comb:
+            # Accelerate
+            if set(pair[0]) == set(pair[1]): continue
             for tri1 in permutations(pair[0]):
                 tri2 = pair[1]
                 lines = self._generateLines(tri1) + self._generateLines(tri2)
@@ -704,6 +884,11 @@ class LogicSolver:
                 now_answer = self._getAnswer(target)
                 if now_answer is not None:
                     return now_answer, rounds, step_lst
+
+            self.Solve_Equations()
+            now_answer = self._getAnswer(target)
+            if now_answer is not None:
+                return now_answer, rounds, step_lst
             return None, rounds, step_lst
 
         else:
@@ -762,6 +947,12 @@ class LogicSolver:
                     now_answer = self._getAnswer(target)
                     if now_answer is not None:
                         return now_answer, steps, step_lst
+
+                self.Solve_Equations()
+
+            now_answer = self._getAnswer(target)
+            if now_answer is not None:
+                return now_answer, steps, step_lst
             return None, steps, step_lst
 
     def reflex_angle(self, points):  # find all the reflex angles in a polygon

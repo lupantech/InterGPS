@@ -29,6 +29,8 @@ class BasicDefinition(object):
         self.Equal = Relation()
         self.SimilarTriangle = Relation()
 
+        self.IsMidpointOf = Relation()
+
         self.relations = [
             self.Point,
             self.Line,
@@ -50,7 +52,9 @@ class BasicDefinition(object):
             self.Pentagon,
 
             self.Equal,
-            self.SimilarTriangle
+            self.SimilarTriangle,
+
+            self.IsMidpointOf
         ]
 
         self.variables = dict()
@@ -68,12 +72,14 @@ class BasicDefinition(object):
         if len(res) > 0:
             return False
         facts(self.Equal, (para1, para2))
+        return True
 
     def define_circle(self, circle):
         res = run(1, (), self.Circle(circle))
         if len(res) > 0:
             return False
         facts(self.Circle, circle)
+        return True
 
     def define_point(self, points):
         # This function is to define a list of points.
@@ -103,6 +109,7 @@ class BasicDefinition(object):
             return False
         facts(self.UniLine, (point_A, point_B))
         facts(self.UniLine, (point_B, point_A))
+        return True
 
     def define_length(self, point_A, point_B, value):
         res = run(1, (), self.Length(point_A, point_B, value))
@@ -150,6 +157,15 @@ class BasicDefinition(object):
         if len(res) > 0:
             return False
         facts(self.Parallel, (line1[0], line1[1], line2[0], line2[1]))
+        return True
+
+    def define_isMidpointOf(self, point, line):
+        res = run(1, (), self.IsMidpointOf(point, line[0], line[1]))
+        if len(res) > 0:
+            return False
+        facts(self.IsMidpointOf, (point, line[0], line[1]))
+        facts(self.IsMidpointOf, (point, line[1], line[0]))
+        return True
 
     def seem_triangle(self, point_A, point_B, point_C):
         return conde((self.Line(point_A, point_B), self.Line(point_B, point_C), self.Line(point_A, point_C)))
@@ -195,6 +211,11 @@ class BasicDefinition(object):
         x = var()
         y = var()
         res = run(0, (x, y), self.UniLine(x, y))
+        return list(res)
+
+    def find_all_midpoints_of_line(self, line):
+        x = var()
+        res = run(0, x, self.IsMidpointOf(x, line[0], line[1]))
         return list(res)
 
     def find_line_with_length(self, line, skip_if_has_number=True):

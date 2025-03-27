@@ -9,6 +9,7 @@ from sympy.parsing.latex import parse_latex
 from sympy import Symbol
 
 from sympy import cos, sin, tan, cot
+import math
 
 
 class LogicParser:
@@ -223,7 +224,7 @@ class LogicParser:
         for point1 in s1 - s2:
             for point2 in s2 - s1:
                 self.logic.defineAngle(point1, intersection, point2, 90)
-                self.logic.defineAngle(point2, intersection, point1, 90)
+                # self.logic.defineAngle(point2, intersection, point1, 90)
 
     def Parallel(self, line1, line2):
         line1 = self.logic.parseLine(line1[1:])
@@ -237,13 +238,69 @@ class LogicParser:
     def LegOf(self, expr):
         pass
 
+    def IsMidpointOfLegOfTrapezoid(self, midpoint, trapzoid):
+        isIsosceles = False
+        if trapzoid[0] != "Trapezoid":
+            isIsosceles = True
+            trapzoid = trapzoid[1]
+        if self.logic.point_positions is not None:
+            p = [self.logic.point_positions[x] for x in trapzoid[1:]]
+            cross = lambda u, v: u[0] * v[1] - u[1] * v[0]
+            c1 = cross((p[1][0] - p[0][0], p[1][1] - p[0][1]), (p[2][0] - p[3][0], p[2][1] - p[3][1]))
+            c2 = cross((p[3][0] - p[0][0], p[3][1] - p[0][1]), (p[2][0] - p[1][0], p[2][1] - p[1][1]))
+            if abs(c1) < abs(c2):
+                legs = [[trapzoid[2], trapzoid[3]],[trapzoid[1], trapzoid[4]]]
+            else:
+                legs = [[trapzoid[1], trapzoid[2]], [trapzoid[4], trapzoid[3]]]
+            points_2_legs = [self.logic.find_all_points_on_line(legs[0]),self.logic.find_all_points_on_line(legs[1])]
+            if midpoint in points_2_legs[0]:
+                self.Midpoint(midpoint, legs[0])
+            else:
+                self.Midpoint(midpoint, legs[1])
+
+            midpoint0 = self.logic.find_all_midpoints_of_line(legs[0])
+            midpoint1 = self.logic.find_all_midpoints_of_line(legs[1])
+            if len(midpoint0) and len(midpoint1):
+                # median line of the trapezoid
+                self.logic.define_line(midpoint0[0], midpoint1[0])
+                length0 = self.logic.find_line_with_length([legs[0][0], legs[1][0]])
+                length1 = self.logic.find_line_with_length([legs[0][1], legs[1][1]])
+                if len(length0) == 0:
+                    length0 = [self.logic.newLineSymbol([legs[0][0], legs[1][0]])]
+                if len(length1) == 0:
+                    length1 = [self.logic.newLineSymbol([legs[0][1], legs[1][1]])]
+                self.logic.define_length(midpoint0[0], midpoint1[0], (length0[0] + length1[0]) / 2 )
+                self.logic.define_parallel([midpoint0[0], midpoint1[0]], [legs[0][0], legs[1][0]])
+                self.logic.define_parallel([midpoint0[0], midpoint1[0]], [legs[0][1], legs[1][1]])
+
+            if isIsosceles:
+                self.logic.lineEqual(legs[0], legs[1])
+                self.logic.angleEqual([legs[0][1], legs[0][0], legs[1][0]], [legs[1][1], legs[1][0], legs[0][0]])
+                self.logic.angleEqual([legs[0][0], legs[0][1], legs[1][1]], [legs[1][0], legs[1][1], legs[0][1]])
+
+
     def BisectsAngle(self, line, angle):
+        if angle[0] == "Line":
+            # a line bisecting a segment
+            self.logic.define_line(line[1], line[2])
+            self.logic.define_line(angle[1], angle[2])
+            points1 = set(self.logic.find_all_points_on_line(line[1:]))
+            points2 = set(self.logic.find_all_points_on_line(angle[1:]))
+
+            if len(points1 & points2) != 1:
+                intersection = line[2]
+            else:
+                intersection = (points1 & points2).pop()
+            self.Midpoint(intersection,[angle[1], angle[2]])
+            return
+
         if line[1] != angle[2]:
             line[1], line[2] = line[2], line[1]
         self.logic.angleEqual([angle[1], angle[2], line[2]], [angle[3], angle[2], line[2]])
 
     def Midpoint(self, point, line):
         line = self.logic.parseLine(line, point)
+        self.logic.define_isMidpointOf(point, line)
         self.logic.lineEqual([line[0], point], [line[1], point])
         self.logic.defineAngle(line[0], point, line[1], 180)
 
@@ -329,7 +386,8 @@ class LogicParser:
             if tree[2][0] == "Line":
                 self.Midpoint(tree[1][1], tree[2][1:])
             elif tree[2][0] == "LegOf":
-                self.Midpoint(tree[1][1], self.LegOf(tree[2][1]))
+                self.IsMidpointOfLegOfTrapezoid(tree[1][1], tree[2][1])
+                # self.Midpoint(tree[1][1], self.LegOf(tree[2][1]))
             else:
                 raise RuntimeError("No such format for IsMidpointOf.")
         if identifier == "IsCentroidOf":
@@ -393,6 +451,22 @@ class LogicParser:
                 O = tree[1][1][1]
                 for p in self.logic.find_points_on_circle(O):
                     self.logic.defineLine(O, p, self.EvaluateSymbols(tree[2]))
+            elif tree[1][0] == "PerimeterOf":
+                if len(tree[1][1]) == 2:
+                    center = tree[1][1][1]
+                    points = self.logic.find_points_on_circle(center)
+                    for p in points:
+                        self.logic.defineLine(center, p, self.EvaluateSymbols(tree[2]) / (2 * math.pi) )
+                else:
+                    points = tree[1][1][1:]
+                    self.logic.definePolygon(points)
+                    # calculate the perimeter of the polygon
+                    expr = sum([self.logic.find_line_with_length([points[i], points[(i+1) % len(points)]])[0] for i in range(len(points))])
+                    val = self.EvaluateSymbols(tree[2])
+                    for i in range(len(points)):
+                        line_measure = self.logic.find_line_with_length([points[i], points[(i+1) % len(points)]])[0]
+                        self.logic.define_length(points[i], points[(i+1) % len(points)], val - expr + line_measure)
+
             else:
                 # self.parseEquals(tree[1], tree[2])
                 def _totlength(data):
@@ -427,8 +501,19 @@ class LogicParser:
             return ['Value', phrase]
         phrase = list(phrase)  # ['LengthOf', ['Line', 'O', 'X']]
 
+        if phrase[0] == "SideOf":
+            phrase = phrase[1]
+            if phrase[0] == "Regular":
+                phrase = phrase[1]
+            return ['Value', *phrase[1:3]]
+
         if phrase[0] == "LengthOf":
             phrase = phrase[1]
+            if phrase[0] == "SideOf":
+                phrase = phrase[1]
+                if phrase[0] == "Regular":
+                    phrase = phrase[1]
+                return ['Value', *phrase[1:3]]
             if phrase[0] == "Arc":
                 return ['Value', 'arc_length', *self.logic.parseArc(phrase[1:])]
             assert phrase[0] == "Line" and len(phrase) == 3

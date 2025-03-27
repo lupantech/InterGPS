@@ -135,6 +135,7 @@ class ExtendedDefinition(BasicDefinition):
             if len(res) > 0:
                 return False
             facts(self.Pentagon, points)
+        return True
 
     def defineCircle(self, circle, point):
         res = run(1, (), self.PointOnCircle(circle, point))

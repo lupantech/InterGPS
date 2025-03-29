@@ -106,10 +106,12 @@ def generate_all(phrase):
                        "Rhombus", "Rectangle", "Square", "Trapezoid", "Kite"]:
         ret = []
         for i in range(len(content)):
-            expr = []
-            for x in content[i:] + content[:i]:
-                expr = listmul(expr, x)
-            ret.extend(expr)
+            expr = [phrase[0]]
+            x = content[i:] + content[:i]
+            for elm in x:
+                expr.append(elm[0])
+            
+            ret.append(expr)
         return ret
     else:
         print ("Not found", phrase)

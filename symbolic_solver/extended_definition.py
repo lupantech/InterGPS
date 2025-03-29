@@ -121,11 +121,21 @@ class ExtendedDefinition(BasicDefinition):
             self.define_line(points[i], points[(i + 1) % l])
             self.define_angle(points[i], points[(i + 1) % l], points[(i + 2) % l])
         if l == 3:
+            res = run(1, (), self.Triangle(*points))
+            if len(res) > 0:
+                return False
             facts(self.Triangle, points)
         elif l == 4:
+            res = run(1, (), self.Quadrilateral(*points))
+            if len(res) > 0:
+                return False
             facts(self.Quadrilateral, points)
         elif l == 5:
+            res = run(1, (), self.Pentagon(*points))
+            if len(res) > 0:
+                return False
             facts(self.Pentagon, points)
+        return True
 
     def defineCircle(self, circle, point):
         res = run(1, (), self.PointOnCircle(circle, point))
@@ -222,8 +232,18 @@ class ExtendedDefinition(BasicDefinition):
         self.definePolygon(tri1)
         self.definePolygon(tri2)
         for ch in permutations([0, 1, 2]):
+            res = run(1, (), self.SimilarTriangle(tri1[ch[0]], tri1[ch[1]], tri1[ch[2]], tri2[ch[0]], tri2[ch[1]], tri2[ch[2]]))
+            if len(res) > 0:
+                continue
             facts(self.SimilarTriangle, (tri1[ch[0]], tri1[ch[1]], tri1[ch[2]], tri2[ch[0]], tri2[ch[1]], tri2[ch[2]]))
+
+            res = run(1, (), self.SimilarTriangle(tri2[ch[0]], tri2[ch[1]], tri2[ch[2]], tri1[ch[0]], tri1[ch[1]], tri1[ch[2]]))
+            if len(res) > 0:
+                continue
             facts(self.SimilarTriangle, (tri2[ch[0]], tri2[ch[1]], tri2[ch[2]], tri1[ch[0]], tri1[ch[1]], tri1[ch[2]]))
+        for ch in range(3):
+            self.angleEqual([tri1[ch], tri1[(ch + 1) % 3], tri1[(ch + 2) % 3]],
+                            [tri2[ch], tri2[(ch + 1) % 3], tri2[(ch + 2) % 3]])
 
     def defineCongruentTriangle(self, tri1, tri2):
         self.definePolygon(tri1)
